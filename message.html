@@ -459,6 +459,8 @@
             const closeBtn = document.getElementById('previewCloseBtn');
 
             list.addEventListener('click', (event) => {
+                event.stopPropagation();
+
                 const actionBtn = event.target.closest('.action-btn');
                 if (actionBtn) {
                     const id = String(actionBtn.dataset.id || '');
