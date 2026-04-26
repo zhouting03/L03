@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>给好朋友的专属空间</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html">首页</a>
+        <a href="share.html">生活分享</a>
+        <a href="wish.html">专属祝福</a>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>你好，远方的朋友 🌟</h1>
+        </header>
+        
+        <section class="profile">
+            <h2>关于我</h2>
+            <p>这里是为你建立的小站。无论你在哪里留学，希望这里的文字和照片能带给你家乡的温度。</p>
+            <div class="intro-card">
+                <p>💡 目前状态：正在努力钻研数学，为你更新网页中...</p>
+            </div>
+        </section>
+
+        <section class="guestbook">
+            <h2>留言板 (模拟)</h2>
+            <textarea id="msgInput" placeholder="写下想说的话..."></textarea>
+            <button onclick="addMessage()">发送</button>
+            <div id="messageList"></div>
+        </section>
+    </div>
+
+    <script>
+        function addMessage() {
+            const input = document.getElementById('msgInput');
+            const list = document.getElementById('messageList');
+            if(input.value) {
+                const msg = document.createElement('p');
+                msg.textContent = `[${new Date().toLocaleDateString()}]：${input.value}`;
+                list.prepend(msg);
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
