@@ -2,62 +2,104 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>天天开心</title>
+    <title>专属祝福</title>
     <style>
-        body { background: #000; margin: 0; overflow: hidden; font-family: 'Microsoft YaHei'; }
-        canvas { position: absolute; width: 100%; height: 100%; }
-        .text-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ff69b4;
+        /* 1. 页面整体风格：淡粉色 */
+        body {
+            background-color: #fff0f3; /* 温暖的粉红色背景 */
+            margin: 0;
+            overflow: hidden; /* 防止出现滚动条 */
+            font-family: 'Microsoft YaHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* 2. 中央大标题 */
+        .main-title {
             font-size: 3rem;
-            text-shadow: 0 0 10px #ff69b4;
+            color: #ff8fa3;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+            user-select: none;
+        }
+
+        /* 3. 弹出的祝福语样式 */
+        .wish-item {
+            position: absolute;
+            white-space: nowrap;
+            color: #ff4d6d;
+            font-weight: bold;
+            font-size: 1.5rem;
             pointer-events: none;
-            text-align: center;
+            animation: floatUp 4s linear forwards; /* 向上漂浮动画 */
+            opacity: 0;
+        }
+
+        /* 4. 漂浮动画定义 */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0.8);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1.2);
+                opacity: 0;
+            }
         }
     </style>
 </head>
 <body>
-    <canvas id="heartCanvas"></canvas>
-    <div class="text-overlay">
-        天天开心<br>
-        <span style="font-size: 1.5rem;">Happy Every Day</span>
-    </div>
+
+    <div class="main-title">✨ 给最特别的你 ✨</div>
 
     <script>
-        const canvas = document.getElementById('heartCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // 【核心：你可以在这里不断添加祝福语】
+        const wishList = [
+            "天天开心 ☀️",
+            "禁止 Emo 🚫",
+            "好运连连 🍀",
+            "万事胜意 🌈",
+            "学业顺利 🎓",
+            "顺风顺水 ⛵",
+            "眼里有光 ✨",
+            "永远自由 🕊️",
+            "要多笑笑呀 😊"
+        ];
 
-        const points = [];
-        // 爱心参数方程
-        for (let t = 0; t < Math.PI * 2; t += 0.05) {
-            let x = 16 * Math.pow(Math.sin(t), 3);
-            let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-            points.push({ x: x * 15, y: y * 15 });
+        function createWish() {
+            const wish = document.createElement('div');
+            wish.className = 'wish-item';
+            
+            // 随机选一条祝福语
+            wish.innerText = wishList[Math.floor(Math.random() * wishList.length)];
+            
+            // 随机横向位置 (10% - 90%)
+            wish.style.left = Math.random() * 80 + 10 + "vw";
+            
+            // 随机字体大小 (1rem - 2.5rem)
+            wish.style.fontSize = Math.random() * 1.5 + 1 + "rem";
+            
+            // 随机动画时长 (让节奏错开)
+            wish.style.animationDuration = Math.random() * 3 + 4 + "s";
+
+            document.body.appendChild(wish);
+
+            // 动画结束后自动删除元素，释放内存
+            setTimeout(() => {
+                wish.remove();
+            }, 7000);
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.beginPath();
-            ctx.strokeStyle = '#ff69b4';
-            ctx.lineWidth = 2;
-
-            points.forEach((p, i) => {
-                const scale = 1 + Math.sin(Date.now() * 0.005) * 0.1; // 呼吸跳动效果
-                ctx.lineTo(p.x * scale, p.y * scale);
-            });
-
-            ctx.closePath();
-            ctx.stroke();
-            ctx.resetTransform();
-            requestAnimationFrame(draw);
-        }
-        draw();
+        // 每隔 800 毫秒弹出一个新祝福
+        setInterval(createWish, 800);
     </script>
 </body>
 </html>
