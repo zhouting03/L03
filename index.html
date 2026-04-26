@@ -2,9 +2,124 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>给好朋友的专属空间</title>
-    <link rel="stylesheet" href="style.css">
+    <title>给LJY的专属空间✨</title>
+    <style>
+        /* 1. 整体视觉：淡粉色调 */
+        body {
+            background-color: #fff0f3;
+            color: #555;
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 2. 状态栏下方的“生日快乐” */
+        .birthday-banner {
+            width: 100%;
+            background-color: #ffb6c1;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* 3. 照片展示区域 */
+        .photo-container {
+            margin: 30px auto;
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .photo-container img {
+            width: 100%;
+            border-radius: 10px;
+            display: block;
+        }
+
+        /* 4. 导航按钮 */
+        .nav-links {
+            margin: 20px;
+        }
+
+        .nav-button {
+            display: inline-block;
+            padding: 10px 25px;
+            background-color: #ff8fa3;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        .nav-button:hover {
+            transform: scale(1.05);
+            background-color: #ff4d6d;
+        }
+
+        /* 5. 底部文字 */
+        footer {
+            margin-top: auto;
+            padding: 30px;
+            color: #ff8fa3;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* 隐藏的文件上传按钮，你可以点击照片区域触发 */
+        #file-input {
+            display: none;
+        }
+    </style>
 </head>
+<body>
+
+    <div class="birthday-banner">🎂 生日快乐~ 🎂</div>
+
+    <div class="photo-container" onclick="document.getElementById('file-input').click()">
+        <img id="display-photo" src="https://via.placeholder.com/500x400/fff0f3/ff8fa3?text=点击此处上传照片" alt="我们的照片">
+        <p style="color: #ffb6c1; font-size: 0.8rem;">(点击上方区域可更换照片)</p>
+    </div>
+    <input type="file" id="file-input" accept="image/*" onchange="previewImage(this)">
+
+    <div class="nav-links">
+        <a href="wish.html" class="nav-button">专属祝福 (弹幕)</a>
+        <a href="share.html" class="nav-button">生活分享</a>
+        <a href="message.html" class="nav-button">前往留言板 ✉️</a>
+    </div>
+
+    <footer>From 周</footer>
+
+    <script>
+        // 照片预览逻辑
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('display-photo').src = e.target.result;
+                    // 注意：这里的更改是暂时的（浏览器本地预览）。
+                    // 如果要永久保存照片，建议将照片命名为 'me.jpg' 放入文件夹并推送。
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+%
 <body>
     <nav>
         <a href="index.html">首页</a>
@@ -19,7 +134,7 @@
         
         <section class="profile">
             <h2>关于我</h2>
-            <p>这里是为你建立的小站，</p>
+            <p>这里是为主包建立的小站，</p>
             <div class="intro-card">
                 <p>💡 目前状态：正在努力钻研中...</p>
             </div>

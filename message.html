@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板</title>
+    <style>
+        /* 1. 页面背景与整体风格 */
+        body {
+            background-color: #fff0f3; /* 淡粉色背景 */
+            font-family: 'Microsoft YaHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            color: #555;
+        }
+
+        h2 {
+            color: #ff8fa3;
+            margin-top: 20px;
+        }
+
+        /* 2. 留言输入框区域 */
+        .input-container {
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            border: 2px solid #ffdae0; /* 淡粉色边框 */
+            border-radius: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: none;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        textarea:focus {
+            border-color: #ff8fa3;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 10px;
+            background-color: #ff8fa3;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #ff4d6d;
+        }
+
+        /* 3. 留言列表显示区域 */
+        #message-list {
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .message-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border-left: 5px solid #ffb6c1;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: #ffb6c1;
+            margin-bottom: 5px;
+        }
+
+        .message-content {
+            font-size: 1rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .back-link {
+            margin-top: 20px;
+            text-decoration: none;
+            color: #ff8fa3;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>✉️ 悄悄话留言板</h2>
+
+    <div class="input-container">
+        <textarea id="msgInput" placeholder="想对我说点什么吗..."></textarea>
+        <button onclick="saveMessage()">发送留言</button>
+    </div>
+
+    <div id="message-list">
+        </div>
+
+    <a href="index.html" class="back-link">← 返回首页</a>
+
+    <script>
+        // 页面加载时自动读取已有的留言
+        window.onload = function() {
+            displayMessages();
+        };
+
+        function saveMessage() {
+            const input = document.getElementById('msgInput');
+            const content = input.value.trim();
+
+            if (content === "") {
+                alert("留言内容不能为空哦~");
+                return;
+            }
+
+            // 获取当前时间
+            const now = new Date();
+            const timeString = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + " " + 
+                               now.getHours().toString().padStart(2, '0') + ":" + 
+                               now.getMinutes().toString().padStart(2, '0');
+
+            const newMessage = {
+                time: timeString,
+                text: content
+            };
+
+            // 从本地存储获取旧数据，如果没有则创建新数组
+            let messages = JSON.parse(localStorage.getItem('my_messages')) || [];
+            
+            // 将新留言加入数组开头
+            messages.unshift(newMessage);
+
+            // 重新存入本地存储
+            localStorage.setItem('my_messages', JSON.stringify(messages));
+
+            // 清空输入框并刷新显示
+            input.value = "";
+            displayMessages();
+        }
+
+        function displayMessages() {
+            const list = document.getElementById('message-list');
+            const messages = JSON.parse(localStorage.getItem('my_messages')) || [];
+            
+            list.innerHTML = ""; // 清空当前显示
+
+            messages.forEach(msg => {
+                const item = document.createElement('div');
+                item.className = 'message-item';
+                item.innerHTML = `
+                    <div class="message-time">${msg.time}</div>
+                    <div class="message-content">${msg.text}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
