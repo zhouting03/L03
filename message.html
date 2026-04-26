@@ -165,13 +165,13 @@
             align-items: center;
             gap: 8px;
             margin-bottom: 12px;
-            align-self: flex-start;
+            align-self: center;
         }
 
         #message-list {
             width: 90%;
             max-width: 500px;
-            align-self: flex-start;
+            align-self: center;
         }
 
         .sort-btn {
@@ -455,9 +455,8 @@
 
             if (!input.value.trim() && pendingImages.length === 0) { alert("内容不能为空"); return; }
 
-            const now = new Date();
-            const timeString = `${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
             const createdAt = Date.now();
+            const timeString = formatDateTime(createdAt);
 
             const newMessage = {
                 id: generateMessageId(),
@@ -514,6 +513,16 @@
             return `${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
         }
 
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const minute = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+
         function getMessages() {
             const raw = JSON.parse(localStorage.getItem(MESSAGE_KEY)) || [];
             let changed = false;
@@ -529,6 +538,11 @@
 
                 if (typeof normalizedMsg.createdAt !== 'number' || Number.isNaN(normalizedMsg.createdAt)) {
                     normalizedMsg.createdAt = base - index;
+                    changed = true;
+                }
+
+                if (typeof normalizedMsg.time !== 'string' || !/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/.test(normalizedMsg.time)) {
+                    normalizedMsg.time = formatDateTime(normalizedMsg.createdAt);
                     changed = true;
                 }
 
