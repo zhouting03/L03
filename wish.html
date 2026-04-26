@@ -50,6 +50,19 @@
             backdrop-filter: blur(2px);
         }
 
+        .flow-status {
+            position: fixed;
+            top: 62px;
+            right: 16px;
+            z-index: 20;
+            color: #ff8fa3;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #ffd4dc;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
         /* 2. 中央大标题 */
         .main-title {
             font-size: clamp(1.8rem, 5vw, 3rem);
@@ -79,6 +92,10 @@
             animation: floatUp 4s linear forwards; /* 向上漂浮动画 */
             opacity: 0;
             z-index: 5;
+        }
+
+        body.paused .wish-item {
+            animation-play-state: paused;
         }
 
         /* 4. 漂浮动画定义 */
@@ -114,6 +131,13 @@
                 font-size: 0.85rem;
             }
 
+            .flow-status {
+                top: 54px;
+                right: 12px;
+                padding: 4px 9px;
+                font-size: 0.75rem;
+            }
+
             .wish-item {
                 max-width: 88vw;
             }
@@ -124,8 +148,9 @@
 
     <a href="index.html" class="home-link">← 返回主页</a>
     <button id="toggleFlowBtn" class="toggle-link" type="button" aria-pressed="false">暂停漂浮</button>
+    <div id="flowStatus" class="flow-status">状态：漂浮中</div>
 
-    <div class="main-title">✨ 给最特别的你 ✨</div>
+    <div class="main-title">✨ 给小鲁同学 ✨</div>
 
     <script>
         // 【核心：你可以在这里不断添加祝福语】
@@ -144,6 +169,7 @@
         let isPaused = false;
 
         function createWish() {
+            if (isPaused) return;
             const wish = document.createElement('div');
             wish.className = 'wish-item';
             
@@ -188,16 +214,21 @@
 
         function updateWishFlowState(paused) {
             const btn = document.getElementById('toggleFlowBtn');
+            const status = document.getElementById('flowStatus');
             isPaused = paused;
 
             if (isPaused) {
                 stopWishFlow();
+                document.body.classList.add('paused');
                 btn.textContent = '继续漂浮';
                 btn.setAttribute('aria-pressed', 'true');
+                status.textContent = '状态：已暂停';
             } else {
+                document.body.classList.remove('paused');
                 startWishFlow();
                 btn.textContent = '暂停漂浮';
                 btn.setAttribute('aria-pressed', 'false');
+                status.textContent = '状态：漂浮中';
             }
         }
 
