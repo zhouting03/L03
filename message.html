@@ -154,6 +154,39 @@
             margin-bottom: 15px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.03);
             border-left: 5px solid #ffb6c1;
+            text-align: left;
+        }
+
+        .toolbar {
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-self: flex-start;
+        }
+
+        #message-list {
+            width: 90%;
+            max-width: 500px;
+            align-self: flex-start;
+        }
+
+        .sort-btn {
+            width: auto;
+            margin-top: 0;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            background: #ffe4ea;
+            color: #ff6f91;
+            border-radius: 999px;
+        }
+
+        .sort-btn.active {
+            background: #ff8fa3;
+            color: #fff;
         }
 
         .message-header {
@@ -253,6 +286,11 @@
         <button onclick="saveMessage()">发送留言</button>
     </div>
 
+    <div class="toolbar">
+        <button type="button" id="sortDescBtn" class="sort-btn active" data-order="desc">时间降序</button>
+        <button type="button" id="sortAscBtn" class="sort-btn" data-order="asc">时间升序</button>
+    </div>
+
     <div id="message-list"></div>
 
     <div id="previewModal" class="preview-modal" role="dialog" aria-label="图片预览" aria-modal="true">
@@ -266,12 +304,15 @@
 
     <script>
         const emojiPool = ['😀', '😂', '🥳', '❤️', '✨', '👍', '😭', '🔥'];
+        const MESSAGE_KEY = 'my_messages';
         let pendingImages = [];
+        let currentSortOrder = 'desc';
 
         window.onload = function () {
             initEmojiButtons();
             bindImageInput();
             bindMessageEvents();
+            bindSortEvents();
             displayMessages();
         };
 
@@ -308,8 +349,8 @@
             list.addEventListener('click', (event) => {
                 const deleteBtn = event.target.closest('.delete-btn');
                 if (deleteBtn) {
-                    const index = Number(deleteBtn.dataset.index);
-                    deleteMessage(index);
+                    const id = deleteBtn.dataset.id;
+                    deleteMessage(id);
                     return;
                 }
 
@@ -331,6 +372,30 @@
                     closeImagePreview();
                 }
             });
+        }
+
+        function bindSortEvents() {
+            const sortDescBtn = document.getElementById('sortDescBtn');
+            const sortAscBtn = document.getElementById('sortAscBtn');
+
+            sortDescBtn.addEventListener('click', () => {
+                currentSortOrder = 'desc';
+                updateSortButtons();
+                displayMessages();
+            });
+
+            sortAscBtn.addEventListener('click', () => {
+                currentSortOrder = 'asc';
+                updateSortButtons();
+                displayMessages();
+            });
+        }
+
+        function updateSortButtons() {
+            const sortDescBtn = document.getElementById('sortDescBtn');
+            const sortAscBtn = document.getElementById('sortAscBtn');
+            sortDescBtn.classList.toggle('active', currentSortOrder === 'desc');
+            sortAscBtn.classList.toggle('active', currentSortOrder === 'asc');
         }
 
         function handleImages(event) {
@@ -392,16 +457,19 @@
 
             const now = new Date();
             const timeString = `${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
+            const createdAt = Date.now();
 
             const newMessage = {
+                id: generateMessageId(),
                 sender: sender,
                 time: timeString,
+                createdAt: createdAt,
                 text: input.value,
                 images: pendingImages
             };
-            let messages = JSON.parse(localStorage.getItem('my_messages')) || [];
+            let messages = getMessages();
             messages.unshift(newMessage);
-            localStorage.setItem('my_messages', JSON.stringify(messages));
+            saveMessages(messages);
             
             input.value = "";
             custom.value = "";
@@ -430,15 +498,52 @@
             return `<div class="msg-images">${safeImages}</div>`;
         }
 
-        function deleteMessage(index) {
-            if (!Number.isInteger(index) || index < 0) return;
-            const messages = JSON.parse(localStorage.getItem('my_messages')) || [];
-            if (index >= messages.length) return;
+        function deleteMessage(id) {
+            if (!id) return;
+            const messages = getMessages();
+            const targetIndex = messages.findIndex(msg => String(msg.id) === String(id));
+            if (targetIndex < 0) return;
             if (!confirm('确定删除这条留言吗？')) return;
 
-            messages.splice(index, 1);
-            localStorage.setItem('my_messages', JSON.stringify(messages));
+            messages.splice(targetIndex, 1);
+            saveMessages(messages);
             displayMessages();
+        }
+
+        function generateMessageId() {
+            return `${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+        }
+
+        function getMessages() {
+            const raw = JSON.parse(localStorage.getItem(MESSAGE_KEY)) || [];
+            let changed = false;
+            const base = Date.now();
+
+            const normalized = raw.map((msg, index) => {
+                const normalizedMsg = { ...msg };
+
+                if (!normalizedMsg.id) {
+                    normalizedMsg.id = `${base - index}_${Math.random().toString(16).slice(2, 8)}`;
+                    changed = true;
+                }
+
+                if (typeof normalizedMsg.createdAt !== 'number' || Number.isNaN(normalizedMsg.createdAt)) {
+                    normalizedMsg.createdAt = base - index;
+                    changed = true;
+                }
+
+                return normalizedMsg;
+            });
+
+            if (changed) {
+                saveMessages(normalized);
+            }
+
+            return normalized;
+        }
+
+        function saveMessages(messages) {
+            localStorage.setItem(MESSAGE_KEY, JSON.stringify(messages));
         }
 
         function openImagePreview(src) {
@@ -458,14 +563,20 @@
 
         function displayMessages() {
             const list = document.getElementById('message-list');
-            const messages = JSON.parse(localStorage.getItem('my_messages')) || [];
-            list.innerHTML = messages.map((msg, index) => `
+            const messages = getMessages();
+            const sortedMessages = [...messages].sort((a, b) => {
+                return currentSortOrder === 'asc'
+                    ? a.createdAt - b.createdAt
+                    : b.createdAt - a.createdAt;
+            });
+
+            list.innerHTML = sortedMessages.map((msg) => `
                 <div class="message-item">
                     <div class="message-header">
                         <span class="sender-name">From: ${escapeHtml(msg.sender || '匿名')}</span>
                         <div class="header-right">
                             <span>${escapeHtml(msg.time || '')}</span>
-                            <button class="delete-btn" type="button" data-index="${index}">删除</button>
+                            <button class="delete-btn" type="button" data-id="${escapeHtml(String(msg.id || ''))}">删除</button>
                         </div>
                     </div>
                     <div class="message-content">${escapeHtml(msg.text || '')}</div>
