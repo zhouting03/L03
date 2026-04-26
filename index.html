@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>给LJY的专属空间✨</title>
     <style>
         /* 1. 整体视觉：淡粉色调 */
@@ -16,116 +17,98 @@
             min-height: 100vh;
         }
 
-        /* 2. 状态栏下方的“生日快乐” */
-        .birthday-banner {
+        /* 2. 顶部导航栏 */
+        nav {
             width: 100%;
             background-color: #ffb6c1;
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.8;
+        }
+
+        /* 3. 状态栏下方的“生日快乐” */
+        .birthday-banner {
+            width: 100%;
+            background-color: #ffc0cb;
             color: white;
             text-align: center;
-            padding: 15px 0;
-            font-size: 1.8rem;
+            padding: 20px 0;
+            font-size: 2rem;
             font-weight: bold;
             letter-spacing: 5px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        /* 3. 照片展示区域 */
-        .photo-container {
-            margin: 30px auto;
+        /* 4. 主要内容容器 */
+        .container {
             width: 90%;
-            max-width: 500px;
-            background: white;
-            padding: 10px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            max-width: 600px;
+            margin-top: 40px;
             text-align: center;
         }
 
-        .photo-container img {
-            width: 100%;
-            border-radius: 10px;
-            display: block;
-        }
-
-        /* 4. 导航按钮 */
-        .nav-links {
-            margin: 20px;
-        }
-
-        .nav-button {
-            display: inline-block;
-            padding: 10px 25px;
-            background-color: #ff8fa3;
-            color: white;
-            text-decoration: none;
-            border-radius: 20px;
-            margin: 5px;
-            transition: transform 0.2s;
-        }
-
-        .nav-button:hover {
-            transform: scale(1.05);
-            background-color: #ff4d6d;
-        }
-
-        /* 5. 底部文字 */
-        footer {
-            margin-top: auto;
-            padding: 30px;
+        header h1 {
             color: #ff8fa3;
-            font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 2.5rem;
         }
 
-        /* 隐藏的文件上传按钮，你可以点击照片区域触发 */
-        #file-input {
-            display: none;
+        .profile {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+            margin-bottom: 30px;
+        }
+
+        .intro-card {
+            border-left: 5px solid #ffb6c1;
+            padding: 10px;
+            background: #fffafa;
+            margin-top: 15px;
+            display: inline-block;
+        }
+
+        /* 5. 底部文字容器 */
+        .footer-container {
+            margin-top: auto; /* 推到页面最底部 */
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: right;
+        }
+
+        footer {
+            color: #ff8fa3;
+            font-size: 1.2rem;
+            font-style: italic;
+            padding-right: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div class="birthday-banner">🎂 生日快乐~ 🎂</div>
-
-    <div class="photo-container" onclick="document.getElementById('file-input').click()">
-        <img id="display-photo" src="https://via.placeholder.com/500x400/fff0f3/ff8fa3?text=点击此处上传照片" alt="我们的照片">
-        <p style="color: #ffb6c1; font-size: 0.8rem;">(点击上方区域可更换照片)</p>
-    </div>
-    <input type="file" id="file-input" accept="image/*" onchange="previewImage(this)">
-
-    <div class="nav-links">
-        <a href="wish.html" class="nav-button">专属祝福 (弹幕)</a>
-        <a href="share.html" class="nav-button">生活分享</a>
-        <a href="message.html" class="nav-button">前往留言板 ✉️</a>
-    </div>
-
-    <footer>From 周</footer>
-
-    <script>
-        // 照片预览逻辑
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('display-photo').src = e.target.result;
-                    // 注意：这里的更改是暂时的（浏览器本地预览）。
-                    // 如果要永久保存照片，建议将照片命名为 'me.jpg' 放入文件夹并推送。
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-    </script>
-</body>
-</html>
-
-
-%
-<body>
     <nav>
         <a href="index.html">首页</a>
-        <a href="share.html">好玩的事</a>
+        <a href="share.html">生活分享</a>
         <a href="wish.html">专属祝福</a>
+        <a href="message.html">留言板</a>
     </nav>
+
+    <div class="birthday-banner">🎂 生日快乐~ 🎂</div>
 
     <div class="container">
         <header>
@@ -135,30 +118,16 @@
         <section class="profile">
             <h2>关于我</h2>
             <p>这里是为主包建立的小站，</p>
+            <p>愿你在异国他乡，也能感受到这份温暖。</p>
             <div class="intro-card">
                 <p>💡 目前状态：正在努力钻研中...</p>
             </div>
         </section>
-
-        <section class="guestbook">
-            <h2>留言板 </h2>
-            <textarea id="msgInput" placeholder="写下想说的话..."></textarea>
-            <button onclick="addMessage()">发送</button>
-            <div id="messageList"></div>
-        </section>
     </div>
 
-    <script>
-        function addMessage() {
-            const input = document.getElementById('msgInput');
-            const list = document.getElementById('messageList');
-            if(input.value) {
-                const msg = document.createElement('p');
-                msg.textContent = `[${new Date().toLocaleDateString()}]：${input.value}`;
-                list.prepend(msg);
-                input.value = '';
-            }
-        }
-    </script>
+    <div class="footer-container">
+        <footer>From 周</footer>
+    </div>
+
 </body>
 </html>
