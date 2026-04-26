@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最近删除留言</title>
+    <style>
+        body {
+            background-color: #fff0f3;
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #555;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            color: #ff8fa3;
+            margin-top: 10px;
+        }
+
+        .toolbar {
+            width: 90%;
+            max-width: 650px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .batch-toolbar {
+            width: 90%;
+            max-width: 650px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+            background: #fff;
+            border: 1px solid #ffd4dc;
+            border-radius: 12px;
+            padding: 10px 12px;
+            box-sizing: border-box;
+        }
+
+        .batch-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ff8fa3;
+            font-size: 0.9rem;
+        }
+
+        .batch-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .cleanup-note {
+            width: 90%;
+            max-width: 650px;
+            color: #ff8fa3;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        .link-btn {
+            text-decoration: none;
+            color: #ff8fa3;
+            background: #fff;
+            border: 1px solid #ffd4dc;
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+
+        #deleted-list {
+            width: 90%;
+            max-width: 650px;
+        }
+
+        .deleted-item {
+            background: white;
+            border-left: 5px solid #ffb6c1;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .item-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+            color: #ff8fa3;
+            font-size: 0.9rem;
+        }
+
+        .item-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .item-check {
+            margin-top: 2px;
+            width: 16px;
+            height: 16px;
+            accent-color: #ff8fa3;
+            cursor: pointer;
+        }
+
+        .meta {
+            display: grid;
+            gap: 4px;
+        }
+
+        .delete-time-tag {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            margin-top: 2px;
+            background: #ffe4ea;
+            color: #ff4d6d;
+            border: 1px solid #ffc7d2;
+            border-radius: 999px;
+            padding: 3px 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .content {
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-bottom: 10px;
+        }
+
+        .msg-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .msg-images img {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid #ffd4dc;
+            object-fit: cover;
+            aspect-ratio: 1 / 1;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 6px 11px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .restore-btn {
+            background: #ff8fa3;
+            color: #fff;
+        }
+
+        .remove-btn {
+            background: #ffe4ea;
+            color: #ff6f91;
+        }
+
+        .batch-btn {
+            background: #ffe4ea;
+            color: #ff6f91;
+        }
+
+        .batch-btn.primary {
+            background: #ff8fa3;
+            color: #fff;
+        }
+
+        .empty {
+            background: #fff;
+            border: 1px dashed #ffd4dc;
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            color: #ff8fa3;
+        }
+    </style>
+</head>
+<body>
+    <h2>🗑️ 最近删除留言</h2>
+
+    <div class="toolbar">
+        <a href="message.html" class="link-btn">← 返回留言板</a>
+        <a href="index.html" class="link-btn">返回首页</a>
+    </div>
+
+    <div class="cleanup-note">系统会自动清理超过 30 天的删除记录</div>
+
+    <div class="batch-toolbar">
+        <div class="batch-left">
+            <label>
+                <input type="checkbox" id="selectAll"> 全选
+            </label>
+            <span id="selectionSummary">已选 0 条</span>
+        </div>
+        <div class="batch-actions">
+            <button type="button" id="batchRestoreBtn" class="batch-btn primary">批量恢复</button>
+            <button type="button" id="batchDeleteBtn" class="batch-btn">批量永久删除</button>
+        </div>
+    </div>
+
+    <div id="deleted-list"></div>
+
+    <script>
+        const MESSAGE_KEY = 'my_messages';
+        const DELETED_KEY = 'my_deleted_messages';
+        const RETENTION_DAYS = 30;
+        const selectedDeletedIds = new Set();
+
+        window.onload = function () {
+            cleanupExpiredDeletedMessages();
+            bindEvents();
+            displayDeletedMessages();
+        };
+
+        function bindEvents() {
+            const list = document.getElementById('deleted-list');
+            const selectAll = document.getElementById('selectAll');
+            const batchRestoreBtn = document.getElementById('batchRestoreBtn');
+            const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+
+            list.addEventListener('click', (event) => {
+                const restoreBtn = event.target.closest('.restore-btn');
+                if (restoreBtn) {
+                    restoreMessage(restoreBtn.dataset.id);
+                    return;
+                }
+
+                const removeBtn = event.target.closest('.remove-btn');
+                if (removeBtn) {
+                    permanentlyDeleteMessage(removeBtn.dataset.id);
+                }
+            });
+
+            list.addEventListener('change', (event) => {
+                const check = event.target.closest('.item-check');
+                if (!check) return;
+
+                const id = String(check.dataset.id || '');
+                if (!id) return;
+
+                if (check.checked) {
+                    selectedDeletedIds.add(id);
+                } else {
+                    selectedDeletedIds.delete(id);
+                }
+                updateSelectionSummary();
+            });
+
+            selectAll.addEventListener('change', () => {
+                toggleSelectAll(selectAll.checked);
+            });
+
+            batchRestoreBtn.addEventListener('click', restoreSelectedMessages);
+            batchDeleteBtn.addEventListener('click', permanentlyDeleteSelectedMessages);
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const minute = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+
+        function getMessages() {
+            return JSON.parse(localStorage.getItem(MESSAGE_KEY)) || [];
+        }
+
+        function saveMessages(messages) {
+            localStorage.setItem(MESSAGE_KEY, JSON.stringify(messages));
+        }
+
+        function getDeletedMessages() {
+            return JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        }
+
+        function saveDeletedMessages(messages) {
+            localStorage.setItem(DELETED_KEY, JSON.stringify(messages));
+        }
+
+        function cleanupExpiredDeletedMessages() {
+            const maxAge = RETENTION_DAYS * 24 * 60 * 60 * 1000;
+            const threshold = Date.now() - maxAge;
+            const deletedMessages = normalizeDeletedMessages();
+            const filtered = deletedMessages.filter(msg => msg.deletedAt >= threshold);
+            if (filtered.length !== deletedMessages.length) {
+                saveDeletedMessages(filtered);
+            }
+        }
+
+        function normalizeDeletedMessages() {
+            const raw = getDeletedMessages();
+            let changed = false;
+            const base = Date.now();
+
+            const normalized = raw.map((msg, index) => {
+                const item = { ...msg };
+
+                if (!item.id) {
+                    item.id = `${base - index}_${Math.random().toString(16).slice(2, 8)}`;
+                    changed = true;
+                }
+
+                if (typeof item.createdAt !== 'number' || Number.isNaN(item.createdAt)) {
+                    item.createdAt = base - index;
+                    changed = true;
+                }
+
+                if (typeof item.time !== 'string' || !/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/.test(item.time)) {
+                    item.time = formatDateTime(item.createdAt);
+                    changed = true;
+                }
+
+                if (typeof item.deletedAt !== 'number' || Number.isNaN(item.deletedAt)) {
+                    item.deletedAt = base - index;
+                    changed = true;
+                }
+
+                return item;
+            });
+
+            if (changed) {
+                saveDeletedMessages(normalized);
+            }
+
+            return normalized;
+        }
+
+        function renderImageList(images) {
+            if (!Array.isArray(images) || !images.length) return '';
+            const safe = images
+                .filter(url => typeof url === 'string' && url.startsWith('data:image/'))
+                .map(url => `<img src="${url}" alt="留言图片">`)
+                .join('');
+            if (!safe) return '';
+            return `<div class="msg-images">${safe}</div>`;
+        }
+
+        function displayDeletedMessages() {
+            const list = document.getElementById('deleted-list');
+            const deletedMessages = normalizeDeletedMessages().sort((a, b) => b.deletedAt - a.deletedAt);
+            const validIds = new Set(deletedMessages.map(msg => String(msg.id)));
+
+            Array.from(selectedDeletedIds).forEach(id => {
+                if (!validIds.has(id)) {
+                    selectedDeletedIds.delete(id);
+                }
+            });
+
+            if (!deletedMessages.length) {
+                list.innerHTML = '<div class="empty">最近删除里还没有留言</div>';
+                updateSelectionSummary();
+                return;
+            }
+
+            list.innerHTML = deletedMessages.map((msg) => `
+                <div class="deleted-item">
+                    <div class="item-head">
+                        <div class="item-left">
+                            <input type="checkbox" class="item-check" data-id="${escapeHtml(String(msg.id))}" ${selectedDeletedIds.has(String(msg.id)) ? 'checked' : ''}>
+                            <div class="meta">
+                                <span>From: ${escapeHtml(msg.sender || '匿名')}</span>
+                                <span>原始留言时间: ${escapeHtml(msg.time || '')}</span>
+                                <span class="delete-time-tag">删除时间: ${escapeHtml(formatDateTime(msg.deletedAt))}</span>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button type="button" class="restore-btn" data-id="${escapeHtml(String(msg.id))}">恢复</button>
+                            <button type="button" class="remove-btn" data-id="${escapeHtml(String(msg.id))}">永久删除</button>
+                        </div>
+                    </div>
+                    <div class="content">${escapeHtml(msg.text || '')}</div>
+                    ${renderImageList(msg.images)}
+                </div>
+            `).join('');
+
+            updateSelectionSummary();
+        }
+
+        function updateSelectionSummary() {
+            const summary = document.getElementById('selectionSummary');
+            const selectAll = document.getElementById('selectAll');
+            const checks = document.querySelectorAll('.item-check');
+            const total = checks.length;
+
+            summary.textContent = `已选 ${selectedDeletedIds.size} 条`;
+
+            if (!total) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+                return;
+            }
+
+            const checkedCount = Array.from(checks).filter(item => item.checked).length;
+            selectAll.checked = checkedCount > 0 && checkedCount === total;
+            selectAll.indeterminate = checkedCount > 0 && checkedCount < total;
+        }
+
+        function toggleSelectAll(checked) {
+            const checks = document.querySelectorAll('.item-check');
+            checks.forEach((item) => {
+                item.checked = checked;
+                const id = String(item.dataset.id || '');
+                if (!id) return;
+
+                if (checked) {
+                    selectedDeletedIds.add(id);
+                } else {
+                    selectedDeletedIds.delete(id);
+                }
+            });
+            updateSelectionSummary();
+        }
+
+        function restoreMessage(id) {
+            if (!id) return;
+            const deletedMessages = normalizeDeletedMessages();
+            const targetIndex = deletedMessages.findIndex(msg => String(msg.id) === String(id));
+            if (targetIndex < 0) return;
+
+            const [message] = deletedMessages.splice(targetIndex, 1);
+            saveDeletedMessages(deletedMessages);
+
+            const messages = getMessages();
+            messages.unshift({
+                id: message.id,
+                sender: message.sender,
+                time: message.time,
+                createdAt: message.createdAt,
+                text: message.text,
+                images: message.images,
+                comments: message.comments
+            });
+            saveMessages(messages);
+
+            selectedDeletedIds.delete(String(id));
+            displayDeletedMessages();
+        }
+
+        function permanentlyDeleteMessage(id) {
+            if (!id) return;
+            if (!confirm('永久删除后不可恢复，确定继续吗？')) return;
+
+            const deletedMessages = normalizeDeletedMessages();
+            const next = deletedMessages.filter(msg => String(msg.id) !== String(id));
+            saveDeletedMessages(next);
+
+            selectedDeletedIds.delete(String(id));
+            displayDeletedMessages();
+        }
+
+        function restoreSelectedMessages() {
+            if (!selectedDeletedIds.size) {
+                alert('请先勾选需要恢复的留言');
+                return;
+            }
+
+            const deletedMessages = normalizeDeletedMessages();
+            const restoreSet = new Set(Array.from(selectedDeletedIds));
+            const restoreList = deletedMessages.filter(msg => restoreSet.has(String(msg.id)));
+            if (!restoreList.length) {
+                selectedDeletedIds.clear();
+                displayDeletedMessages();
+                return;
+            }
+
+            const remainList = deletedMessages.filter(msg => !restoreSet.has(String(msg.id)));
+            saveDeletedMessages(remainList);
+
+            const messages = getMessages();
+            restoreList.sort((a, b) => b.createdAt - a.createdAt).forEach((message) => {
+                messages.unshift({
+                    id: message.id,
+                    sender: message.sender,
+                    time: message.time,
+                    createdAt: message.createdAt,
+                    text: message.text,
+                    images: message.images,
+                    comments: message.comments
+                });
+            });
+            saveMessages(messages);
+
+            selectedDeletedIds.clear();
+            displayDeletedMessages();
+        }
+
+        function permanentlyDeleteSelectedMessages() {
+            if (!selectedDeletedIds.size) {
+                alert('请先勾选需要永久删除的留言');
+                return;
+            }
+            if (!confirm(`确定永久删除选中的 ${selectedDeletedIds.size} 条留言吗？`)) return;
+
+            const deleteSet = new Set(Array.from(selectedDeletedIds));
+            const deletedMessages = normalizeDeletedMessages();
+            const next = deletedMessages.filter(msg => !deleteSet.has(String(msg.id)));
+            saveDeletedMessages(next);
+
+            selectedDeletedIds.clear();
+            displayDeletedMessages();
+        }
+    </script>
+</body>
+</html>

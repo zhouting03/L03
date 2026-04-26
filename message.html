@@ -203,7 +203,11 @@
             gap: 10px;
         }
 
-        .delete-btn {
+        .action-wrap {
+            position: relative;
+        }
+
+        .action-btn {
             width: auto;
             margin-top: 0;
             padding: 4px 10px;
@@ -211,6 +215,102 @@
             background: #ffd7df;
             color: #ff6f91;
             font-size: 0.75rem;
+        }
+
+        .action-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 6px);
+            min-width: 120px;
+            background: #fff;
+            border: 1px solid #ffd4dc;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            padding: 6px;
+            display: none;
+            z-index: 20;
+        }
+
+        .action-menu.show {
+            display: block;
+        }
+
+        .action-item {
+            width: 100%;
+            margin-top: 0;
+            padding: 7px 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            text-align: left;
+            background: #fff;
+            color: #ff6f91;
+        }
+
+        .action-item:hover {
+            background: #fff3f6;
+        }
+
+        .comments {
+            margin-top: 8px;
+            border-top: 1px solid #ffe3e8;
+            padding-top: 8px;
+        }
+
+        .comments-title {
+            color: #ff8fa3;
+            font-size: 0.82rem;
+            margin-bottom: 6px;
+        }
+
+        .comment-item {
+            background: #fff7f9;
+            border-radius: 8px;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .comment-time {
+            color: #ff9caf;
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+        }
+
+        .comment-editor {
+            margin-top: 8px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .comment-input {
+            width: 100%;
+            min-height: 64px;
+            border: 1px solid #ffd4dc;
+            border-radius: 8px;
+            padding: 8px;
+            box-sizing: border-box;
+            resize: vertical;
+            font-size: 0.9rem;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .comment-submit,
+        .comment-cancel {
+            width: auto;
+            margin-top: 0;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+        }
+
+        .comment-cancel {
+            background: #ffe4ea;
+            color: #ff6f91;
         }
 
         .preview-modal {
@@ -259,7 +359,13 @@
 
         .sender-name { font-weight: bold; color: #ff8fa3; }
 
-        .back-link { margin-top: 20px; text-decoration: none; color: #ff8fa3; }
+        .extra-links {
+            margin-top: 18px;
+            display: flex;
+            gap: 14px;
+        }
+
+        .back-link { text-decoration: none; color: #ff8fa3; }
     </style>
 </head>
 <body>
@@ -300,13 +406,19 @@
         </div>
     </div>
 
-    <a href="index.html" class="back-link">← 返回首页</a>
+    <div class="extra-links">
+        <a href="index.html" class="back-link">← 返回首页</a>
+        <a href="deleted.html" class="back-link">查看最近删除</a>
+    </div>
 
     <script>
         const emojiPool = ['😀', '😂', '🥳', '❤️', '✨', '👍', '😭', '🔥'];
         const MESSAGE_KEY = 'my_messages';
+        const DELETED_KEY = 'my_deleted_messages';
         let pendingImages = [];
         let currentSortOrder = 'desc';
+        let openActionMenuId = null;
+        let openCommentEditorId = null;
 
         window.onload = function () {
             initEmojiButtons();
@@ -347,16 +459,59 @@
             const closeBtn = document.getElementById('previewCloseBtn');
 
             list.addEventListener('click', (event) => {
-                const deleteBtn = event.target.closest('.delete-btn');
-                if (deleteBtn) {
-                    const id = deleteBtn.dataset.id;
-                    deleteMessage(id);
+                const actionBtn = event.target.closest('.action-btn');
+                if (actionBtn) {
+                    const id = String(actionBtn.dataset.id || '');
+                    if (!id) return;
+
+                    openActionMenuId = openActionMenuId === id ? null : id;
+                    displayMessages();
+                    return;
+                }
+
+                const actionItem = event.target.closest('.action-item');
+                if (actionItem) {
+                    const id = String(actionItem.dataset.id || '');
+                    const action = String(actionItem.dataset.action || '');
+                    openActionMenuId = null;
+
+                    if (action === 'delete') {
+                        deleteMessage(id);
+                        return;
+                    }
+
+                    if (action === 'comment') {
+                        openCommentEditorId = id;
+                        displayMessages();
+                        return;
+                    }
+                }
+
+                const submitBtn = event.target.closest('.comment-submit');
+                if (submitBtn) {
+                    const id = String(submitBtn.dataset.id || '');
+                    addComment(id);
+                    return;
+                }
+
+                const cancelBtn = event.target.closest('.comment-cancel');
+                if (cancelBtn) {
+                    openCommentEditorId = null;
+                    displayMessages();
                     return;
                 }
 
                 const image = event.target.closest('.msg-image-thumb');
                 if (image) {
                     openImagePreview(image.dataset.src || '');
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                const insideList = event.target.closest('#message-list');
+                if (!insideList && openActionMenuId !== null) {
+                    openActionMenuId = null;
+                    displayMessages();
                 }
             });
 
@@ -464,7 +619,8 @@
                 time: timeString,
                 createdAt: createdAt,
                 text: input.value,
-                images: pendingImages
+                images: pendingImages,
+                comments: []
             };
             let messages = getMessages();
             messages.unshift(newMessage);
@@ -504,8 +660,54 @@
             if (targetIndex < 0) return;
             if (!confirm('确定删除这条留言吗？')) return;
 
-            messages.splice(targetIndex, 1);
+            const [removedMessage] = messages.splice(targetIndex, 1);
             saveMessages(messages);
+
+            const now = Date.now();
+
+            const deletedMessages = getDeletedMessages();
+            deletedMessages.unshift({
+                ...removedMessage,
+                deletedAt: now
+            });
+            saveDeletedMessages(deletedMessages);
+
+            if (openCommentEditorId === String(id)) {
+                openCommentEditorId = null;
+            }
+
+            displayMessages();
+        }
+
+        function addComment(messageId) {
+            if (!messageId) return;
+            const editor = document.querySelector(`.comment-input[data-id="${messageId}"]`);
+            if (!editor) return;
+
+            const value = editor.value.trim();
+            if (!value) {
+                alert('评论内容不能为空');
+                return;
+            }
+
+            const messages = getMessages();
+            const target = messages.find(msg => String(msg.id) === String(messageId));
+            if (!target) return;
+
+            if (!Array.isArray(target.comments)) {
+                target.comments = [];
+            }
+
+            const createdAt = Date.now();
+            target.comments.push({
+                id: generateMessageId(),
+                text: value,
+                createdAt: createdAt,
+                time: formatDateTime(createdAt)
+            });
+
+            saveMessages(messages);
+            openCommentEditorId = null;
             displayMessages();
         }
 
@@ -546,6 +748,35 @@
                     changed = true;
                 }
 
+                if (!Array.isArray(normalizedMsg.comments)) {
+                    normalizedMsg.comments = [];
+                    changed = true;
+                }
+
+                const normalizedComments = normalizedMsg.comments.map((comment, commentIndex) => {
+                    const normalizedComment = { ...comment };
+                    const fallbackTime = normalizedMsg.createdAt + commentIndex;
+
+                    if (!normalizedComment.id) {
+                        normalizedComment.id = `${normalizedMsg.id}_c_${commentIndex}`;
+                        changed = true;
+                    }
+
+                    if (typeof normalizedComment.createdAt !== 'number' || Number.isNaN(normalizedComment.createdAt)) {
+                        normalizedComment.createdAt = fallbackTime;
+                        changed = true;
+                    }
+
+                    if (typeof normalizedComment.time !== 'string' || !/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/.test(normalizedComment.time)) {
+                        normalizedComment.time = formatDateTime(normalizedComment.createdAt);
+                        changed = true;
+                    }
+
+                    return normalizedComment;
+                });
+
+                normalizedMsg.comments = normalizedComments;
+
                 return normalizedMsg;
             });
 
@@ -558,6 +789,14 @@
 
         function saveMessages(messages) {
             localStorage.setItem(MESSAGE_KEY, JSON.stringify(messages));
+        }
+
+        function getDeletedMessages() {
+            return JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        }
+
+        function saveDeletedMessages(messages) {
+            localStorage.setItem(DELETED_KEY, JSON.stringify(messages));
         }
 
         function openImagePreview(src) {
@@ -575,6 +814,30 @@
             modal.classList.remove('show');
         }
 
+        function renderComments(comments) {
+            if (!Array.isArray(comments) || comments.length === 0) return '';
+            const safeComments = comments.map((comment) => `
+                <div class="comment-item">
+                    <div class="comment-time">${escapeHtml(comment.time || '')}</div>
+                    <div>${escapeHtml(comment.text || '')}</div>
+                </div>
+            `).join('');
+            return `<div class="comments"><div class="comments-title">评论</div>${safeComments}</div>`;
+        }
+
+        function renderCommentEditor(messageId) {
+            if (String(openCommentEditorId) !== String(messageId)) return '';
+            return `
+                <div class="comment-editor">
+                    <textarea class="comment-input" data-id="${escapeHtml(String(messageId))}" placeholder="写下你对这条留言的评论..."></textarea>
+                    <div class="comment-actions">
+                        <button type="button" class="comment-submit" data-id="${escapeHtml(String(messageId))}">提交评论</button>
+                        <button type="button" class="comment-cancel" data-id="${escapeHtml(String(messageId))}">取消</button>
+                    </div>
+                </div>
+            `;
+        }
+
         function displayMessages() {
             const list = document.getElementById('message-list');
             const messages = getMessages();
@@ -590,11 +853,19 @@
                         <span class="sender-name">From: ${escapeHtml(msg.sender || '匿名')}</span>
                         <div class="header-right">
                             <span>${escapeHtml(msg.time || '')}</span>
-                            <button class="delete-btn" type="button" data-id="${escapeHtml(String(msg.id || ''))}">删除</button>
+                            <div class="action-wrap">
+                                <button class="action-btn" type="button" data-id="${escapeHtml(String(msg.id || ''))}">操作</button>
+                                <div class="action-menu ${openActionMenuId === String(msg.id) ? 'show' : ''}">
+                                    <button class="action-item" type="button" data-action="comment" data-id="${escapeHtml(String(msg.id || ''))}">评论该留言</button>
+                                    <button class="action-item" type="button" data-action="delete" data-id="${escapeHtml(String(msg.id || ''))}">删除该留言</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="message-content">${escapeHtml(msg.text || '')}</div>
                     ${renderImageList(msg.images)}
+                    ${renderComments(msg.comments)}
+                    ${renderCommentEditor(msg.id)}
                 </div>
             `).join('');
         }
