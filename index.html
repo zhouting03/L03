@@ -5,81 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>给LJY的专属空间✨</title>
     <style>
-        /* 1. 整体视觉：淡粉色调 */
+        :root {
+            --kitty-red: #ff5d73;
+            --kitty-pink: #ffb6c1;
+            --kitty-blush: #ffe3ea;
+            --kitty-cream: #fff8f3;
+            --kitty-ink: #6e5b60;
+            --kitty-shadow: 0 18px 40px rgba(255, 93, 115, 0.12);
+        }
+
+        /* 1. 整体视觉：Hello Kitty 风格 */
         body {
-            background-color: #fff0f3;
-            color: #555;
-            font-family: 'Microsoft YaHei', sans-serif;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(255, 214, 225, 0.9) 0 2px, transparent 3px) 0 0 / 42px 42px,
+                radial-gradient(circle at 90% 20%, rgba(255, 214, 225, 0.9) 0 2px, transparent 3px) 0 0 / 52px 52px,
+                linear-gradient(180deg, #fff8fb 0%, #fff0f5 42%, #ffe9ef 100%);
+            color: var(--kitty-ink);
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            inset: auto;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0 35%, rgba(255, 182, 193, 0.28) 36% 68%, transparent 69%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            top: -50px;
+            left: -40px;
+        }
+
+        body::after {
+            right: -50px;
+            bottom: -60px;
         }
 
         /* 2. 顶部导航栏 */
         nav {
             width: 100%;
-            background-color: #ffb6c1;
-            padding: 15px 0;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 182, 193, 0.45);
+            padding: 14px 0;
             display: flex;
             justify-content: center;
-            gap: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(255, 93, 115, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 20;
         }
 
         nav a {
-            color: white;
+            color: var(--kitty-red);
             text-decoration: none;
             font-weight: bold;
             font-size: 1rem;
-            transition: opacity 0.3s;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 243, 247, 0.92);
+            border: 1px solid rgba(255, 182, 193, 0.7);
+            box-shadow: 0 6px 16px rgba(255, 93, 115, 0.08);
         }
 
         nav a:hover {
-            opacity: 0.8;
+            transform: translateY(-1px);
+            background: white;
+            box-shadow: 0 10px 22px rgba(255, 93, 115, 0.14);
         }
 
         /* 3. 状态栏下方的“生日快乐” */
         .birthday-banner {
             width: 100%;
-            background-color: #ffc0cb;
+            background: linear-gradient(90deg, var(--kitty-red), #ff7f96, var(--kitty-red));
             color: white;
             text-align: center;
-            padding: 20px 0;
+            padding: 18px 0;
             font-size: 2rem;
             font-weight: bold;
-            letter-spacing: 5px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            letter-spacing: 3px;
+            box-shadow: 0 10px 24px rgba(255, 93, 115, 0.18);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .birthday-banner::before,
+        .birthday-banner::after {
+            content: '🎀';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .birthday-banner::before {
+            left: 16px;
+        }
+
+        .birthday-banner::after {
+            right: 16px;
         }
 
         /* 4. 主要内容容器 */
         .container {
             width: 90%;
             max-width: 600px;
-            margin-top: 40px;
+            margin-top: 34px;
             text-align: center;
+            position: relative;
+            z-index: 1;
         }
 
         header h1 {
-            color: #ff8fa3;
-            font-size: 2.5rem;
+            color: var(--kitty-red);
+            font-size: clamp(2.2rem, 6vw, 3.2rem);
+            margin: 0 0 14px;
+            text-shadow: 0 3px 0 rgba(255, 255, 255, 0.95);
         }
 
         .profile {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 28px 24px 26px;
+            border-radius: 30px;
+            box-shadow: var(--kitty-shadow);
             margin-bottom: 30px;
+            border: 2px solid rgba(255, 182, 193, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile::before {
+            content: '🐱';
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 1.4rem;
+        }
+
+        .profile h2 {
+            color: var(--kitty-red);
+            margin-top: 0;
+            margin-bottom: 14px;
         }
 
         .intro-card {
-            border-left: 5px solid #ffb6c1;
-            padding: 10px;
-            background: #fffafa;
-            margin-top: 15px;
+            border: 2px dashed #ffb6c1;
+            padding: 14px 16px;
+            background: linear-gradient(180deg, #fffdfd 0%, #fff4f7 100%);
+            margin-top: 16px;
             display: inline-block;
+            border-radius: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
         }
 
         /* 5. 底部文字容器 */
@@ -92,10 +185,39 @@
         }
 
         footer {
-            color: #ff8fa3;
+            color: var(--kitty-red);
             font-size: 1.2rem;
             font-style: italic;
             padding-right: 20px;
+            text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        @media (max-width: 640px) {
+            nav {
+                gap: 8px;
+                flex-wrap: wrap;
+                padding: 12px 10px;
+            }
+
+            nav a {
+                font-size: 0.92rem;
+                padding: 7px 12px;
+            }
+
+            .birthday-banner {
+                font-size: 1.5rem;
+                letter-spacing: 1px;
+                padding: 16px 12px;
+            }
+
+            .container {
+                width: min(92%, 560px);
+            }
+
+            .profile {
+                padding: 24px 18px 22px;
+                border-radius: 24px;
+            }
         }
     </style>
 </head>
@@ -112,15 +234,15 @@
 
     <div class="container">
         <header>
-            <h1>halo~主包 🌟</h1>
+            <h1>halo~主包 🎀</h1>
         </header>
         
         <section class="profile">
             <h2>关于我</h2>
             <p>这里是为主包建立的小站，</p>
-            <p>愿你在异国他乡，也能感受到这份温暖。</p>
+            <p>希望主包天天开心，像 Hello Kitty 一样被温柔包围。</p>
             <div class="intro-card">
-                <p>💡 目前状态：正在努力钻研中...</p>
+                <p>🎀 目前状态：正在努力钻研中...</p>
             </div>
         </section>
     </div>
