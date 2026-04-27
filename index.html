@@ -92,14 +92,14 @@
         /* 3. 状态栏下方的“生日快乐” */
         .birthday-banner {
             width: 100%;
-            background: linear-gradient(90deg, var(--kitty-red), #ff7f96, var(--kitty-red));
-            color: white;
+            background: linear-gradient(90deg, #ffd7e0, #ffe8ee, #ffd7e0);
+            color: #ff6f86;
             text-align: center;
-            padding: 18px 0;
+            padding: 16px 0;
             font-size: 2rem;
             font-weight: bold;
-            letter-spacing: 3px;
-            box-shadow: 0 10px 24px rgba(255, 93, 115, 0.18);
+            letter-spacing: 2px;
+            box-shadow: 0 8px 18px rgba(255, 182, 193, 0.18);
             position: relative;
             overflow: hidden;
             z-index: 1;
@@ -177,18 +177,26 @@
 
         /* 5. 底部文字容器 */
         .footer-container {
-            margin-top: auto; /* 推到页面最底部 */
-            width: 100%;
-            padding: 20px;
+            position: fixed;
+            left: 16px;
+            bottom: 14px;
+            width: auto;
+            padding: 0;
             box-sizing: border-box;
-            text-align: right;
+            text-align: left;
+            z-index: 5;
         }
 
         footer {
             color: var(--kitty-red);
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-style: italic;
-            padding-right: 20px;
+            padding-right: 0;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(255, 182, 193, 0.55);
+            border-radius: 999px;
+            box-shadow: 0 8px 20px rgba(255, 93, 115, 0.08);
             text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8);
         }
 
@@ -208,6 +216,16 @@
                 font-size: 1.5rem;
                 letter-spacing: 1px;
                 padding: 16px 12px;
+            }
+
+            .footer-container {
+                left: 12px;
+                bottom: 12px;
+            }
+
+            footer {
+                font-size: 0.92rem;
+                padding: 7px 10px;
             }
 
             .container {
