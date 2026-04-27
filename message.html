@@ -11,12 +11,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 72px 20px 20px;
             margin: 0;
             color: #555;
         }
 
-        h2 { color: #ff8fa3; margin-top: 20px; }
+        h2 { color: #ff8fa3; margin-top: 0; }
 
         .input-container {
             width: 90%;
@@ -271,6 +271,13 @@
             color: #666;
         }
 
+        .comment-author {
+            color: #ff6f91;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
         .comment-time {
             color: #ff9caf;
             font-size: 0.75rem;
@@ -281,6 +288,68 @@
             margin-top: 8px;
             display: grid;
             gap: 6px;
+            background: linear-gradient(180deg, #fff9fb 0%, #fff4f8 100%);
+            border: 1px solid #ffdce4;
+            border-radius: 12px;
+            padding: 8px;
+        }
+
+        .comment-sender-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: #ff8fa3;
+        }
+
+        .comment-sender-select span {
+            color: #ff6f91;
+            font-weight: bold;
+            background: #ffeaf0;
+            border: 1px solid #ffd0da;
+            border-radius: 999px;
+            padding: 4px 10px;
+            line-height: 1;
+        }
+
+        .comment-sender-select select,
+        .comment-custom-input {
+            height: 32px;
+            padding: 6px 11px;
+            border: 1px solid #ffc9d6;
+            border-radius: 999px;
+            outline: none;
+            color: #ff6f91;
+            background: #fff;
+            box-shadow: 0 4px 10px rgba(255, 143, 163, 0.12);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .comment-sender-select select {
+            min-width: 122px;
+            appearance: none;
+            padding-right: 28px;
+            background-image:
+                linear-gradient(45deg, transparent 50%, #ff8fa3 50%),
+                linear-gradient(135deg, #ff8fa3 50%, transparent 50%),
+                linear-gradient(180deg, #fff 0%, #fff7fa 100%);
+            background-position:
+                calc(100% - 14px) calc(50% - 2px),
+                calc(100% - 9px) calc(50% - 2px),
+                0 0;
+            background-size: 5px 5px, 5px 5px, 100% 100%;
+            background-repeat: no-repeat;
+        }
+
+        .comment-custom-input {
+            width: 108px;
+        }
+
+        .comment-sender-select select:focus,
+        .comment-custom-input:focus {
+            border-color: #ff9db1;
+            box-shadow: 0 0 0 3px rgba(255, 143, 163, 0.18);
         }
 
         .comment-input {
@@ -360,12 +429,58 @@
         .sender-name { font-weight: bold; color: #ff8fa3; }
 
         .extra-links {
-            margin-top: 18px;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            right: 16px;
             display: flex;
-            gap: 14px;
+            justify-content: space-between;
+            gap: 12px;
+            z-index: 30;
+            pointer-events: none;
         }
 
-        .back-link { text-decoration: none; color: #ff8fa3; }
+        .back-link {
+            text-decoration: none;
+            color: #ff6f91;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid #ffd4dc;
+            border-radius: 999px;
+            padding: 8px 14px;
+            box-shadow: 0 8px 18px rgba(255, 111, 145, 0.08);
+            pointer-events: auto;
+            white-space: nowrap;
+        }
+
+        .back-link:hover {
+            background: #fff;
+        }
+
+        .back-link:first-child {
+            align-self: flex-start;
+        }
+
+        .back-link:last-child {
+            align-self: flex-end;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 88px 12px 16px;
+            }
+
+            .extra-links {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+                gap: 10px;
+            }
+
+            .back-link {
+                padding: 7px 11px;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -686,11 +801,20 @@
             const editor = document.querySelector(`.comment-input[data-id="${messageId}"]`);
             if (!editor) return;
 
+            const senderSelect = document.querySelector(`.comment-sender-choice[data-id="${messageId}"]`);
+            const customSender = document.querySelector(`.comment-custom-sender[data-id="${messageId}"]`);
+
             const value = editor.value.trim();
             if (!value) {
                 alert('评论内容不能为空');
                 return;
             }
+
+            let sender = senderSelect ? senderSelect.value : 'zt';
+            if (sender === 'other') {
+                sender = customSender ? customSender.value.trim() : '';
+            }
+            if (!sender) sender = '匿名';
 
             const messages = getMessages();
             const target = messages.find(msg => String(msg.id) === String(messageId));
@@ -703,6 +827,7 @@
             const createdAt = Date.now();
             target.comments.push({
                 id: generateMessageId(),
+                sender: sender,
                 text: value,
                 createdAt: createdAt,
                 time: formatDateTime(createdAt)
@@ -774,6 +899,11 @@
                         changed = true;
                     }
 
+                    if (typeof normalizedComment.sender !== 'string' || !normalizedComment.sender.trim()) {
+                        normalizedComment.sender = '匿名';
+                        changed = true;
+                    }
+
                     return normalizedComment;
                 });
 
@@ -820,6 +950,7 @@
             if (!Array.isArray(comments) || comments.length === 0) return '';
             const safeComments = comments.map((comment) => `
                 <div class="comment-item">
+                    <div class="comment-author">来自：${escapeHtml(comment.sender || '匿名')}</div>
                     <div class="comment-time">${escapeHtml(comment.time || '')}</div>
                     <div>${escapeHtml(comment.text || '')}</div>
                 </div>
@@ -827,10 +958,29 @@
             return `<div class="comments"><div class="comments-title">评论</div>${safeComments}</div>`;
         }
 
+        function toggleCommentCustomInput(messageId) {
+            const select = document.querySelector(`.comment-sender-choice[data-id="${messageId}"]`);
+            const custom = document.querySelector(`.comment-custom-sender[data-id="${messageId}"]`);
+            if (!select || !custom) return;
+            custom.style.display = select.value === 'other' ? 'inline-block' : 'none';
+            if (select.value !== 'other') {
+                custom.value = '';
+            }
+        }
+
         function renderCommentEditor(messageId) {
             if (String(openCommentEditorId) !== String(messageId)) return '';
             return `
                 <div class="comment-editor">
+                    <div class="comment-sender-select">
+                        <span>来自:</span>
+                        <select class="comment-sender-choice" data-id="${escapeHtml(String(messageId))}" onchange="toggleCommentCustomInput('${escapeHtml(String(messageId))}')">
+                            <option value="zt">zt</option>
+                            <option value="ljy">ljy</option>
+                            <option value="other">其他(自定义)</option>
+                        </select>
+                        <input type="text" class="comment-custom-input comment-custom-sender" data-id="${escapeHtml(String(messageId))}" placeholder="输入名字" style="display:none;">
+                    </div>
                     <textarea class="comment-input" data-id="${escapeHtml(String(messageId))}" placeholder="写下你对这条留言的评论..."></textarea>
                     <div class="comment-actions">
                         <button type="button" class="comment-submit" data-id="${escapeHtml(String(messageId))}">提交评论</button>
