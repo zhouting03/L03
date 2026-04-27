@@ -228,16 +228,16 @@
 
     <div id="deleted-list"></div>
 
+    <script src="sync-config.js"></script>
+    <script src="shared-storage.js"></script>
     <script>
-        const MESSAGE_KEY = 'my_messages';
-        const DELETED_KEY = 'my_deleted_messages';
         const RETENTION_DAYS = 30;
         const selectedDeletedIds = new Set();
 
-        window.onload = function () {
-            cleanupExpiredDeletedMessages();
+        window.onload = async function () {
+            await cleanupExpiredDeletedMessages();
             bindEvents();
-            displayDeletedMessages();
+            await displayDeletedMessages();
         };
 
         function bindEvents() {
@@ -301,34 +301,34 @@
             return `${year}-${month}-${day} ${hour}:${minute}`;
         }
 
-        function getMessages() {
-            return JSON.parse(localStorage.getItem(MESSAGE_KEY)) || [];
+        async function getMessages() {
+            return window.MessageSyncStore.getMessages();
         }
 
-        function saveMessages(messages) {
-            localStorage.setItem(MESSAGE_KEY, JSON.stringify(messages));
+        async function saveMessages(messages) {
+            await window.MessageSyncStore.saveMessages(messages);
         }
 
-        function getDeletedMessages() {
-            return JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        async function getDeletedMessages() {
+            return window.MessageSyncStore.getDeletedMessages();
         }
 
-        function saveDeletedMessages(messages) {
-            localStorage.setItem(DELETED_KEY, JSON.stringify(messages));
+        async function saveDeletedMessages(messages) {
+            await window.MessageSyncStore.saveDeletedMessages(messages);
         }
 
-        function cleanupExpiredDeletedMessages() {
+        async function cleanupExpiredDeletedMessages() {
             const maxAge = RETENTION_DAYS * 24 * 60 * 60 * 1000;
             const threshold = Date.now() - maxAge;
-            const deletedMessages = normalizeDeletedMessages();
+            const deletedMessages = await normalizeDeletedMessages();
             const filtered = deletedMessages.filter(msg => msg.deletedAt >= threshold);
             if (filtered.length !== deletedMessages.length) {
-                saveDeletedMessages(filtered);
+                await saveDeletedMessages(filtered);
             }
         }
 
-        function normalizeDeletedMessages() {
-            const raw = getDeletedMessages();
+        async function normalizeDeletedMessages() {
+            const raw = await getDeletedMessages();
             let changed = false;
             const base = Date.now();
 
@@ -359,7 +359,7 @@
             });
 
             if (changed) {
-                saveDeletedMessages(normalized);
+                await saveDeletedMessages(normalized);
             }
 
             return normalized;
@@ -375,9 +375,9 @@
             return `<div class="msg-images">${safe}</div>`;
         }
 
-        function displayDeletedMessages() {
+        async function displayDeletedMessages() {
             const list = document.getElementById('deleted-list');
-            const deletedMessages = normalizeDeletedMessages().sort((a, b) => b.deletedAt - a.deletedAt);
+            const deletedMessages = (await normalizeDeletedMessages()).sort((a, b) => b.deletedAt - a.deletedAt);
             const validIds = new Set(deletedMessages.map(msg => String(msg.id)));
 
             Array.from(selectedDeletedIds).forEach(id => {
@@ -451,16 +451,16 @@
             updateSelectionSummary();
         }
 
-        function restoreMessage(id) {
+        async function restoreMessage(id) {
             if (!id) return;
-            const deletedMessages = normalizeDeletedMessages();
+            const deletedMessages = await normalizeDeletedMessages();
             const targetIndex = deletedMessages.findIndex(msg => String(msg.id) === String(id));
             if (targetIndex < 0) return;
 
             const [message] = deletedMessages.splice(targetIndex, 1);
-            saveDeletedMessages(deletedMessages);
+            await saveDeletedMessages(deletedMessages);
 
-            const messages = getMessages();
+            const messages = await getMessages();
             messages.unshift({
                 id: message.id,
                 sender: message.sender,
@@ -470,43 +470,43 @@
                 images: message.images,
                 comments: message.comments
             });
-            saveMessages(messages);
+            await saveMessages(messages);
 
             selectedDeletedIds.delete(String(id));
-            displayDeletedMessages();
+            await displayDeletedMessages();
         }
 
-        function permanentlyDeleteMessage(id) {
+        async function permanentlyDeleteMessage(id) {
             if (!id) return;
             if (!confirm('永久删除后不可恢复，确定继续吗？')) return;
 
-            const deletedMessages = normalizeDeletedMessages();
+            const deletedMessages = await normalizeDeletedMessages();
             const next = deletedMessages.filter(msg => String(msg.id) !== String(id));
-            saveDeletedMessages(next);
+            await saveDeletedMessages(next);
 
             selectedDeletedIds.delete(String(id));
-            displayDeletedMessages();
+            await displayDeletedMessages();
         }
 
-        function restoreSelectedMessages() {
+        async function restoreSelectedMessages() {
             if (!selectedDeletedIds.size) {
                 alert('请先勾选需要恢复的留言');
                 return;
             }
 
-            const deletedMessages = normalizeDeletedMessages();
+            const deletedMessages = await normalizeDeletedMessages();
             const restoreSet = new Set(Array.from(selectedDeletedIds));
             const restoreList = deletedMessages.filter(msg => restoreSet.has(String(msg.id)));
             if (!restoreList.length) {
                 selectedDeletedIds.clear();
-                displayDeletedMessages();
+                await displayDeletedMessages();
                 return;
             }
 
             const remainList = deletedMessages.filter(msg => !restoreSet.has(String(msg.id)));
-            saveDeletedMessages(remainList);
+            await saveDeletedMessages(remainList);
 
-            const messages = getMessages();
+            const messages = await getMessages();
             restoreList.sort((a, b) => b.createdAt - a.createdAt).forEach((message) => {
                 messages.unshift({
                     id: message.id,
@@ -518,13 +518,13 @@
                     comments: message.comments
                 });
             });
-            saveMessages(messages);
+            await saveMessages(messages);
 
             selectedDeletedIds.clear();
-            displayDeletedMessages();
+            await displayDeletedMessages();
         }
 
-        function permanentlyDeleteSelectedMessages() {
+        async function permanentlyDeleteSelectedMessages() {
             if (!selectedDeletedIds.size) {
                 alert('请先勾选需要永久删除的留言');
                 return;
@@ -532,12 +532,12 @@
             if (!confirm(`确定永久删除选中的 ${selectedDeletedIds.size} 条留言吗？`)) return;
 
             const deleteSet = new Set(Array.from(selectedDeletedIds));
-            const deletedMessages = normalizeDeletedMessages();
+            const deletedMessages = await normalizeDeletedMessages();
             const next = deletedMessages.filter(msg => !deleteSet.has(String(msg.id)));
-            saveDeletedMessages(next);
+            await saveDeletedMessages(next);
 
             selectedDeletedIds.clear();
-            displayDeletedMessages();
+            await displayDeletedMessages();
         }
     </script>
 </body>

@@ -526,21 +526,21 @@
         <a href="deleted.html" class="back-link">查看最近删除</a>
     </div>
 
+    <script src="sync-config.js"></script>
+    <script src="shared-storage.js"></script>
     <script>
         const emojiPool = ['😀', '😂', '🥳', '❤️', '✨', '👍', '😭', '🔥'];
-        const MESSAGE_KEY = 'my_messages';
-        const DELETED_KEY = 'my_deleted_messages';
         let pendingImages = [];
         let currentSortOrder = 'desc';
         let openActionMenuId = null;
         let openCommentEditorId = null;
 
-        window.onload = function () {
+        window.onload = async function () {
             initEmojiButtons();
             bindImageInput();
             bindMessageEvents();
             bindSortEvents();
-            displayMessages();
+            await displayMessages();
         };
 
         function initEmojiButtons() {
@@ -717,7 +717,7 @@
             custom.style.display = select.value === 'other' ? 'inline-block' : 'none';
         }
 
-        function saveMessage() {
+        async function saveMessage() {
             const select = document.getElementById('senderChoice');
             const custom = document.getElementById('customSender');
             const input = document.getElementById('msgInput');
@@ -739,16 +739,16 @@
                 images: pendingImages,
                 comments: []
             };
-            let messages = getMessages();
+            let messages = await getMessages();
             messages.unshift(newMessage);
-            saveMessages(messages);
+            await saveMessages(messages);
             
             input.value = "";
             custom.value = "";
             pendingImages = [];
             document.getElementById('imgInput').value = '';
             renderPreview();
-            displayMessages();
+            await displayMessages();
         }
 
         function escapeHtml(text) {
@@ -770,33 +770,33 @@
             return `<div class="msg-images">${safeImages}</div>`;
         }
 
-        function deleteMessage(id) {
+        async function deleteMessage(id) {
             if (!id) return;
-            const messages = getMessages();
+            const messages = await getMessages();
             const targetIndex = messages.findIndex(msg => String(msg.id) === String(id));
             if (targetIndex < 0) return;
             if (!confirm('确定删除这条留言吗？')) return;
 
             const [removedMessage] = messages.splice(targetIndex, 1);
-            saveMessages(messages);
+            await saveMessages(messages);
 
             const now = Date.now();
 
-            const deletedMessages = getDeletedMessages();
+            const deletedMessages = await getDeletedMessages();
             deletedMessages.unshift({
                 ...removedMessage,
                 deletedAt: now
             });
-            saveDeletedMessages(deletedMessages);
+            await saveDeletedMessages(deletedMessages);
 
             if (openCommentEditorId === String(id)) {
                 openCommentEditorId = null;
             }
 
-            displayMessages();
+            await displayMessages();
         }
 
-        function addComment(messageId) {
+        async function addComment(messageId) {
             if (!messageId) return;
             const editor = document.querySelector(`.comment-input[data-id="${messageId}"]`);
             if (!editor) return;
@@ -816,7 +816,7 @@
             }
             if (!sender) sender = '匿名';
 
-            const messages = getMessages();
+            const messages = await getMessages();
             const target = messages.find(msg => String(msg.id) === String(messageId));
             if (!target) return;
 
@@ -833,9 +833,9 @@
                 time: formatDateTime(createdAt)
             });
 
-            saveMessages(messages);
+            await saveMessages(messages);
             openCommentEditorId = null;
-            displayMessages();
+            await displayMessages();
         }
 
         function generateMessageId() {
@@ -852,8 +852,8 @@
             return `${year}-${month}-${day} ${hour}:${minute}`;
         }
 
-        function getMessages() {
-            const raw = JSON.parse(localStorage.getItem(MESSAGE_KEY)) || [];
+        async function getMessages() {
+            const raw = await window.MessageSyncStore.getMessages();
             let changed = false;
             const base = Date.now();
 
@@ -913,22 +913,22 @@
             });
 
             if (changed) {
-                saveMessages(normalized);
+                await saveMessages(normalized);
             }
 
             return normalized;
         }
 
-        function saveMessages(messages) {
-            localStorage.setItem(MESSAGE_KEY, JSON.stringify(messages));
+        async function saveMessages(messages) {
+            await window.MessageSyncStore.saveMessages(messages);
         }
 
-        function getDeletedMessages() {
-            return JSON.parse(localStorage.getItem(DELETED_KEY)) || [];
+        async function getDeletedMessages() {
+            return window.MessageSyncStore.getDeletedMessages();
         }
 
-        function saveDeletedMessages(messages) {
-            localStorage.setItem(DELETED_KEY, JSON.stringify(messages));
+        async function saveDeletedMessages(messages) {
+            await window.MessageSyncStore.saveDeletedMessages(messages);
         }
 
         function openImagePreview(src) {
@@ -990,9 +990,9 @@
             `;
         }
 
-        function displayMessages() {
+        async function displayMessages() {
             const list = document.getElementById('message-list');
-            const messages = getMessages();
+            const messages = await getMessages();
             const sortedMessages = [...messages].sort((a, b) => {
                 return currentSortOrder === 'asc'
                     ? a.createdAt - b.createdAt
